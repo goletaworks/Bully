@@ -38,7 +38,7 @@ var bully = plugin('bully', {
 				if(ndx != 'length'){
 					names.push(ndx);
 				}
-			};
+			}
 			echo(player, 'Your pets are ' + names.join(', '));
 		}
 	},
@@ -150,12 +150,6 @@ var bully = plugin('bully', {
 });
 
 exports.bully = bully;
-
-events.entityTarget(function(ev){
-	console.log(ev);
-	var entity = ev.entity;
-	var target = ev.target;
-});
 
 events.entityRightClick(function(ev){	
 	var player = ev.player;
