@@ -40,58 +40,19 @@ var bully = plugin('bully', {
 				}
 			};
 			echo(player, 'Your pets are ' + names.join(', '));
-		},
-		
-		fight : function(params){
-			var name1 = params.parameters[0];
-			var name2 = params.parameters[1];
-			var player = params.sender;
-			var mob1 = bully.getPetByName(player, name1);
-			var mob2 = bully.getPetByName(player, name2);
-			if(!mob1){
-				echo(player, name1 + ' isn\'t a pet of yours!');
-				return;
-			}
-			if(!mob2){
-				echo(player, name2 + ' isn\'t a pet of yours!');
-				return;
-			}
-			
-			bully.fight(player, mob1, mob2);
-		},
-		
-		help : function(params){
-			var cmd = params.parameters[0];
-			var player = params.sender;
-			if(!cmd){
-				var msg = 'Type "/jsp bully help <commandName>" for help on any of these commands: ';
-				var names = [];
-				for(var ndx in bully.commands){
-					names.push(ndx);
-				}
-				msg += names.join(' ');
-				echo(player, msg);
-				return;
-			}
-			switch(cmd){
-				case 'fight':
-					echo(player, '/jsp bully fight <attackingPetName> <defendingPetName>: makes one pet attack another');
-					break;
-				case 'pets':
-					echo(player, '/jsp bully pets: displays your list of pets');
-					break;
-				case 'help':
-					echo(player, '/jsp bully help [<commandName>]: displays help for the Bully plugin');
-					break;
-				default:
-					echo(player, 'Unknown command: ' + cmd);
-					break;
-			}
 		}
 	},
 	// ------------------------- END COMMANDS --------------------------------
 	
-	fight : function(player, mob1, mob2){			
+	fight : function(player, mob1, mob2){
+		if(!mob1.setAttackTarget){
+			echo(player, mob1.name + ' is not a valid attacker');
+			return;
+		}
+		if(!mob2.setAttackTarget){
+			echo(player, mob2.name + ' is not a valid target');
+			return;
+		}
 		mob1.setAttackTarget(mob2);
 		mob1.setRevengeTarget(mob2);
 		mob2.setAttackTarget(mob1);
@@ -190,39 +151,16 @@ var bully = plugin('bully', {
 
 exports.bully = bully;
 
-/*
-events.entitySpawn(function(ev){	
-	var entity = ev.entity;	
-	if(!entity.isLiving() || entity.isPlayer()){	
-		return;
-	}
-	
-	utils.foreach(entity.world.playerList, function(player){
-		// only count nearby creatures
-		var d = bully.distanceFrom(player, entity);
-		if(Math.abs(d.x) < 5 && Math.abs(d.y) < 5 && Math.abs(d.z) < 5){
-			bully.addPet(player, entity);
-		}
-	});
+events.entityTarget(function(ev){
+	console.log(ev);
+	var entity = ev.entity;
+	var target = ev.target;
 });
-*/
-
-/*
-events.mobTarget(function(ev){
-	var entity = ev.entity, target = ev.target;
-	
-	if(bully.getPet(entity, target)){
-		
-	}
-});
-*/
 
 events.entityRightClick(function(ev){	
 	var player = ev.player;
 	var bullyPlayer = bully.getOrAddPlayer(player);
 	var clickedEntity = ev.entity;
-	
-	echo(player, ev);
 	
 	var name = bully.getPet(player, clickedEntity);	
 	if(bullyPlayer.lastClicked){	
@@ -242,12 +180,6 @@ events.entityRightClick(function(ev){
 		echo(player, bullyPlayer.lastClicked.name + ' is ready to fight! Click a target to start an attack.');	
 	}
 });
-
-/*
-events.entityTame(function(ev){
-	var player = ev.player, animal = ev.animal, isTamed = ev.isTamed;	
-});
-*/
 
 
 command('bully', function(parameters, sender) {
